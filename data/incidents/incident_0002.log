@@ -1,0 +1,8 @@
+2026-05-02T01:52:11Z FIN-SRV02 Sysmon EventID=3 Image=C:\Windows\System32\svchost.exe DestinationIp=10.20.4.17 DestinationPort=445
+2026-05-02T01:58:44Z FIN-SRV02 Sysmon EventID=11 TargetFilename=C:\Windows\Temp\a83fce2.exe
+2026-05-02T02:00:03Z FIN-SRV02 Security EventID=4698 TaskName=\Microsoft\Windows\a83fce2 CreatedBy=FIN-SRV02\svc_backup
+2026-05-02T02:00:07Z FIN-SRV02 Sysmon EventID=1 CommandLine="C:\Windows\Temp\a83fce2.exe" ParentImage=svchost.exe
+2026-05-02T02:00:19Z FIN-SRV02 Sysmon EventID=10 TargetImage=C:\Windows\System32\lsass.exe GrantedAccess=0x1010
+2026-05-02T02:04:51Z FIN-WS14 Security EventID=4698 TaskName=\Microsoft\Windows\b91da77 CreatedBy=FIN-SRV02\svc_backup
+2026-05-02T02:09:12Z FIN-WS22 Security EventID=4698 TaskName=\Microsoft\Windows\c4f0e12 CreatedBy=FIN-SRV02\svc_backup
+2026-05-02T02:41:30Z SOC-EDR Alert=Isolated Host=FIN-SRV02 Reason=LSASS_memory_access_anomaly
