@@ -22,6 +22,15 @@ class ReportWriterAgent(Agent):
             f"Related past incidents (RAG hits): "
             f"{[{'source': h['id'], 'excerpt': h['text'][:200]} for h in state.intel_findings]}\n"
         )
-        state.report = self.ask(f"Write the incident report from these findings:\n\n{findings_blob}")
+        narrative = self.ask(f"Write the incident report from these findings:\n\n{findings_blob}")
+        techniques = sorted({str(item["technique_id"]) for item in state.graph_findings if item.get("technique_id")})
+        incidents = sorted({str(item["id"]) for item in state.intel_findings if item.get("id")})
+        ledger = (
+            "\n\nVerified input references (matched or retrieved, not proof of compromise):\n"
+            f"- ATT&CK technique IDs: {', '.join(techniques) or 'none'}\n"
+            f"- Retrieved incident IDs: {', '.join(incidents) or 'none'}\n"
+            f"- Supporting log supplied: {'yes' if state.log_findings else 'no'}"
+        )
+        state.report = narrative.strip() + ledger
         state.log(self.name, "generated final report")
         return state
