@@ -1,5 +1,7 @@
 # Threat Graph RAG — Multi-Agent Incident Investigation Platform
 
+[![Tests](https://github.com/haarikaalla/knowledge-graph-incident-investigator/actions/workflows/tests.yml/badge.svg)](https://github.com/haarikaalla/knowledge-graph-incident-investigator/actions/workflows/tests.yml)
+
 A knowledge-graph + RAG system for cybersecurity incident investigation,
 built on the real **MITRE ATT&CK** knowledge base, with five specialist
 agents that share a common graph + vector memory instead of one monolithic
@@ -8,6 +10,11 @@ prompt.
 Runs entirely locally — no API keys, no cloud calls. Uses [Ollama](https://ollama.com)
 for generation and embeddings, [NetworkX](https://networkx.org) for the
 graph, and a small numpy-based vector store.
+
+The report is an **analyst aid**, not a confirmed finding. Its deterministic
+evidence ledger lists the ATT&CK technique IDs and incident documents actually
+matched or retrieved, plus whether supporting log data was supplied. The LLM
+narrative still needs human verification.
 
 ## Why this exists
 
@@ -31,6 +38,18 @@ being answered from scratch.
                  Incident report
 ```
 
+### Evidence and failure boundaries
+
+- Triage accepts only four named severity levels and a bounded list of
+  nonempty string indicators. Invalid model JSON becomes `unknown` severity
+  with no indicators instead of entering graph search as trusted data.
+- Vector embeddings must be finite, nonzero, and the same dimension. A saved
+  index is checked against its JSON sidecar before a search can use it.
+- The report appends references from program state after the model writes its
+  narrative; the model cannot invent entries in this ledger.
+- The five agents run in a fixed order. The tests use mocked Ollama responses;
+  live investigative quality is not measured by this test suite.
+
 | Agent | Role |
 |---|---|
 | **Triage** | Extracts IOCs and severity from the raw alert |
@@ -45,7 +64,7 @@ Being upfront about this, because it matters for how you evaluate/extend it:
 
 - **The knowledge graph is real.** `data/attack_graph.json` is built directly
   from the public [MITRE ATT&CK](https://github.com/mitre/cti) STIX dataset —
-  858 real techniques, 189 real threat groups, 268 real mitigations, and the
+  697 technique nodes, 174 group nodes, 44 mitigation nodes, and the
   real relationships between them (`scripts/build_attack_graph.py`).
 - **The incident write-ups are synthetic.** There's no public corpus of real
   breach investigations (companies don't publish those), so `data/incidents/*.md`
@@ -92,8 +111,8 @@ ollama serve   # leave running in a separate terminal
 
 **2. Clone and install Python dependencies:**
 ```bash
-git clone https://github.com/<your-username>/threat-graph-rag.git
-cd threat-graph-rag
+git clone https://github.com/haarikaalla/knowledge-graph-incident-investigator.git
+cd knowledge-graph-incident-investigator
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -106,7 +125,7 @@ python -m scripts.build_vector_store     # embeds the incident corpus via Ollama
 
 **4. Run the tests (no Ollama needed for these):**
 ```bash
-pytest tests/ -v
+python -m pytest tests/ -v
 ```
 
 **5. Try the minimal example first** (fastest way to see the core pattern):
@@ -125,6 +144,17 @@ creation at 2AM outside change windows." --log-file data/incidents/incident_0002
 ```bash
 python cli.py stats
 ```
+
+CI runs the offline tests on Python 3.10 and 3.13. The integrity tests cover
+malformed LLM triage output, invalid or inconsistent vector files, and the
+deterministic report references. For a full local demonstration, build the
+index with Ollama, run the investigation command above, and compare the
+report's ledger against the graph and retrieved incident files.
+
+**Data handling:** Real case files and logs can contain sensitive information.
+The sample incidents are synthetic. Review permissions and retention before
+using operational data; this demo has no multi-user access controls or SIEM
+integration.
 
 ## Extending this project
 
